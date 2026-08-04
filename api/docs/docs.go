@@ -63,6 +63,43 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/url_shorter/{shortUrl}": {
+            "get": {
+                "description": "Looks up the long URL for a short code.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "urls"
+                ],
+                "summary": "Resolve a short code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Short code to resolve",
+                        "name": "shortUrl",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Redirect found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "404": {
+                        "description": "Short code not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

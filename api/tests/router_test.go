@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 )
@@ -19,6 +20,29 @@ func TestRouterRoutes(t *testing.T) {
 		w := doRequest(t, r, http.MethodGet, "/api/url_shorter", nil)
 		if w.Code != http.StatusNotFound && w.Code != http.StatusMethodNotAllowed {
 			t.Errorf("expected 404/405, got %d", w.Code)
+		}
+	})
+
+	t.Run("GET /api/url_shorter/:shortUrl resolves a stored code", func(t *testing.T) {
+		create := doRequest(t, r, http.MethodPost, "/api/url_shorter", jsonBody(`{"long_url":"https://example.com/route"}`))
+		if create.Code != http.StatusCreated {
+			t.Fatalf("create failed: %d %s", create.Code, create.Body.String())
+		}
+
+		var created struct {
+			ShortURL string `json:"short_url"`
+		}
+		if err := json.Unmarshal(create.Body.Bytes(), &created); err != nil {
+			t.Fatal(err)
+		}
+		code, ok := shortCode(t, created.ShortURL)
+		if !ok {
+			t.Fatal("could not extract short code")
+		}
+
+		w := doRequest(t, r, http.MethodGet, "/api/url_shorter/"+code, nil)
+		if w.Code != http.StatusFound {
+			t.Errorf("expected 302, got %d (body: %s)", w.Code, w.Body.String())
 		}
 	})
 

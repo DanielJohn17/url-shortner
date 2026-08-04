@@ -98,3 +98,44 @@ func TestServiceCreate(t *testing.T) {
 		}
 	})
 }
+
+func TestServiceGetUrl(t *testing.T) {
+	db := setupTestDB(t)
+	svc := urls.NewUrlService(urls.NewURLRepository(db))
+
+	t.Run("returns the long url for an existing short code", func(t *testing.T) {
+		code, err := svc.Create(context.Background(), "https://example.com/resolve")
+		if err != nil {
+			t.Fatalf("create failed: %v", err)
+		}
+
+		longUrl, err := svc.GetUrl(context.Background(), code)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if longUrl != "https://example.com/resolve" {
+			t.Errorf("got long_url %q", longUrl)
+		}
+	})
+
+	t.Run("errors on unknown short code", func(t *testing.T) {
+		if _, err := svc.GetUrl(context.Background(), "zzzzzz"); err == nil {
+			t.Fatal("expected error for unknown short code, got nil")
+		}
+	})
+
+	t.Run("honors a canceled context", func(t *testing.T) {
+		code, err := svc.Create(context.Background(), "https://example.com/resolve-cancel")
+		if err != nil {
+			t.Fatalf("seed failed: %v", err)
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Millisecond)
+		defer cancel()
+		time.Sleep(2 * time.Millisecond)
+
+		if _, err := svc.GetUrl(ctx, code); err == nil {
+			t.Fatal("expected error with canceled context, got nil")
+		}
+	})
+}

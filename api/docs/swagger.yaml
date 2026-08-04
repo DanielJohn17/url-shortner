@@ -47,4 +47,29 @@ paths:
       summary: Shorten a long URL
       tags:
       - urls
+  /url_shorter/{shortUrl}:
+    get:
+      description: Looks up the long URL for a short code.
+      parameters:
+      - description: Short code to resolve
+        in: path
+        name: shortUrl
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirect found
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Short code not found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Resolve a short code
+      tags:
+      - urls
 swagger: "2.0"

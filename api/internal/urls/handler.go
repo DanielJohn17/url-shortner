@@ -11,7 +11,7 @@ import (
 
 type URLHandlerInt interface {
 	Create(c *gin.Context)
-	GetUrl(c *gin.Context)
+	RedirectUrl(c *gin.Context)
 }
 
 type URLHandler struct {
@@ -56,5 +56,32 @@ func (h *URLHandler) Create(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, gin.H{
 		"success":   true,
 		"short_url": fmt.Sprintf("%s/%s", config.Env.DomainName, shortUrl),
+	})
+}
+
+// RedirectUrl godoc
+// @Summary Resolve a short code
+// @Description Looks up the long URL for a short code.
+// @Tags urls
+// @Produce json
+// @Param shortUrl path string true "Short code to resolve"
+// @Success 302 {object} map[string]interface{} "Redirect found"
+// @Failure 404 {object} map[string]interface{} "Short code not found"
+// @Router /url_shorter/{shortUrl} [get]
+func (h *URLHandler) RedirectUrl(c *gin.Context) {
+	shortUrl := c.Param("shortUrl")
+
+	longUrl, err := h.service.GetUrl(c, shortUrl)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.IndentedJSON(http.StatusFound, gin.H{
+		"success":  true,
+		"long_url": longUrl,
 	})
 }

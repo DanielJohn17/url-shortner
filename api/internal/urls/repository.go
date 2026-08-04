@@ -36,7 +36,7 @@ func (r *URLRepository) Create(cxt context.Context, url *URL) (*URL, error) {
 func (r *URLRepository) GetUrl(cxt context.Context, shortUrl string) (*URL, error) {
 	url, err := gorm.G[URL](r.db).Where("short_url = ?", shortUrl).First(cxt)
 	if err != nil {
-		return nil, fmt.Errorf("Redirect not found")
+		return nil, fmt.Errorf("Redirect url not found")
 	}
 
 	return &url, nil

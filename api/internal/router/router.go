@@ -19,6 +19,7 @@ func NewRoutes(h *Handlers) *gin.Engine {
 	subRouter := router.Group("/api")
 
 	subRouter.POST("/url_shorter", h.URL.Create)
+	subRouter.GET("/url_shorter/:shortUrl", h.URL.RedirectUrl)
 
 	return router
 }

@@ -47,3 +47,12 @@ func (s *URLService) Create(cxt context.Context, longUrl string) (string, error)
 
 	return createdUrl.ShortUrl, nil
 }
+
+func (s *URLService) GetUrl(cxt context.Context, shortUrl string) (string, error) {
+	url, err := s.repo.GetUrl(cxt, shortUrl)
+	if err != nil {
+		return "", err
+	}
+
+	return url.LongUrl, nil
+}

@@ -168,3 +168,51 @@ func TestHandlerStoredShortUrlIsResolvable(t *testing.T) {
 		t.Errorf("got long_url %q", got.LongUrl)
 	}
 }
+
+func TestHandlerRedirectUrl(t *testing.T) {
+	r, _ := buildAppWithDB(t)
+
+	t.Run("returns 302 with the long url", func(t *testing.T) {
+		create := doRequest(t, r, http.MethodPost, "/api/url_shorter", jsonBody(`{"long_url":"https://example.com/redirect"}`))
+		if create.Code != http.StatusCreated {
+			t.Fatalf("create failed: %d %s", create.Code, create.Body.String())
+		}
+
+		var created struct {
+			ShortURL string `json:"short_url"`
+		}
+		if err := json.Unmarshal(create.Body.Bytes(), &created); err != nil {
+			t.Fatal(err)
+		}
+		code, ok := shortCode(t, created.ShortURL)
+		if !ok {
+			t.Fatal("could not extract short code")
+		}
+
+		w := doRequest(t, r, http.MethodGet, "/api/url_shorter/"+code, nil)
+		if w.Code != http.StatusFound {
+			t.Fatalf("got status %d, want 302 (body: %s)", w.Code, w.Body.String())
+		}
+
+		var body struct {
+			Success bool   `json:"success"`
+			LongURL string `json:"long_url"`
+		}
+		if err := json.Unmarshal(w.Body.Bytes(), &body); err != nil {
+			t.Fatal(err)
+		}
+		if !body.Success {
+			t.Errorf("expected success=true")
+		}
+		if body.LongURL != "https://example.com/redirect" {
+			t.Errorf("got long_url %q", body.LongURL)
+		}
+	})
+
+	t.Run("unknown short code returns 404", func(t *testing.T) {
+		w := doRequest(t, r, http.MethodGet, "/api/url_shorter/zzzzzz", nil)
+		if w.Code != http.StatusNotFound {
+			t.Errorf("got status %d, want 404 (body: %s)", w.Code, w.Body.String())
+		}
+	})
+}
