@@ -1,0 +1,50 @@
+basePath: /api
+definitions:
+  urls.UrlShort:
+    properties:
+      long_url:
+        type: string
+    required:
+    - long_url
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API to shorten long URLs into short codes.
+  title: URL Shortner API
+  version: "1.0"
+paths:
+  /url_shorter:
+    post:
+      consumes:
+      - application/json
+      description: Accepts a long URL and returns a short code. Retries on collisions.
+      parameters:
+      - description: Long URL to shorten
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/urls.UrlShort'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Shortened URL created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Shorten a long URL
+      tags:
+      - urls
+swagger: "2.0"

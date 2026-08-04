@@ -7,8 +7,14 @@ import (
 	"github.com/DanielJohn17/url-shortner/api/internal/router"
 	"github.com/DanielJohn17/url-shortner/api/internal/storage"
 	"github.com/DanielJohn17/url-shortner/api/internal/urls"
+	_ "github.com/DanielJohn17/url-shortner/api/docs"
 )
 
+// @title URL Shortner API
+// @version 1.0
+// @description API to shorten long URLs into short codes.
+// @host localhost:8080
+// @BasePath /api
 func main() {
 
 	db, err := storage.NewDatabase(storage.DBConfig{
