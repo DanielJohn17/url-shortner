@@ -1,8 +1,10 @@
 package urls
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/DanielJohn17/url-shortner/api/internal/config"
 	"github.com/DanielJohn17/url-shortner/api/internal/helpers"
 	"github.com/gin-gonic/gin"
 )
@@ -53,6 +55,6 @@ func (h *URLHandler) Create(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusCreated, gin.H{
 		"success":   true,
-		"short_url": shortUrl,
+		"short_url": fmt.Sprintf("%s/%s", config.Env.DomainName, shortUrl),
 	})
 }

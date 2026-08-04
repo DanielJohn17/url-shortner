@@ -12,15 +12,13 @@ type Config struct {
 	DBPassword string
 	DBName     string
 	DBPort     string
+	DomainName string
 }
 
 var Env = initConfig()
 
 func initConfig() Config {
-	if err := godotenv.Load("../.env"); err != nil {
-		panic("Error loading env file")
-	}
-
+	_ = godotenv.Load("../.env")
 
 	return Config{
 		DBHost:     GetEnv("DB_HOST", "localhost"),
@@ -28,6 +26,7 @@ func initConfig() Config {
 		DBPassword: GetEnv("DB_PASSWORD", "postgres"),
 		DBName:     GetEnv("DB_NAME", "url_shortner_db"),
 		DBPort:     GetEnv("DB_PORT", "5432"),
+		DomainName: GetEnv("D_Name", "localhost:8080"),
 	}
 }
 

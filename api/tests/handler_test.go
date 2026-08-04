@@ -27,8 +27,8 @@ func TestHandlerCreate(t *testing.T) {
 		if !body.Success {
 			t.Errorf("expected success=true")
 		}
-		if len(body.ShortURL) != 6 {
-			t.Errorf("expected 6-char short_url, got %q", body.ShortURL)
+		if code, ok := shortCode(t, body.ShortURL); ok && len(code) != 6 {
+			t.Errorf("expected 6-char short code, got %q", code)
 		}
 	})
 
@@ -154,8 +154,13 @@ func TestHandlerStoredShortUrlIsResolvable(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	code, ok := shortCode(t, body.ShortURL)
+	if !ok {
+		t.Fatal("could not extract short code")
+	}
+
 	repo := urls.NewURLRepository(db)
-	got, err := repo.GetUrl(context.Background(), body.ShortURL)
+	got, err := repo.GetUrl(context.Background(), code)
 	if err != nil {
 		t.Fatalf("stored short url not resolvable: %v", err)
 	}

@@ -49,6 +49,15 @@ func TestCanonicalizeBasic(t *testing.T) {
 	}
 }
 
+func shortCode(t *testing.T, full string) (string, bool) {
+	t.Helper()
+	idx := strings.LastIndex(full, "/")
+	if idx < 0 || idx == len(full)-1 {
+		return "", false
+	}
+	return full[idx+1:], true
+}
+
 func TestHashString(t *testing.T) {
 	empty := helpers.HashString("")
 	want := sha256.Sum256([]byte(""))
