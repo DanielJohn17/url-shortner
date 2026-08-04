@@ -39,14 +39,16 @@ func (h *URLHandler) Create(c *gin.Context) {
 			"success": false,
 			"error":   err.Error(),
 		})
+		return
 	}
 
-	shortUrl, err := h.service.CreateWithDelay(c, urlShort.LongUrl)
+	shortUrl, err := h.service.Create(c, urlShort.LongUrl)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
 			"success": "false",
 			"error":   err.Error(),
 		})
+		return
 	}
 
 	c.IndentedJSON(http.StatusCreated, gin.H{

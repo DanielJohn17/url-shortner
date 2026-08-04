@@ -2,12 +2,10 @@ package tests
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"net/http/httptest"
-	"sync/atomic"
+	"path/filepath"
 	"testing"
-	"time"
 
 	"github.com/DanielJohn17/url-shortner/api/internal/router"
 	"github.com/DanielJohn17/url-shortner/api/internal/urls"
@@ -18,23 +16,13 @@ import (
 	_ "github.com/DanielJohn17/url-shortner/api/docs"
 )
 
-var dbCounter int64
-
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
 
-	dsn := fmt.Sprintf("file:db_%d_%d?mode=memory&cache=shared", time.Now().UnixNano(), atomic.AddInt64(&dbCounter, 1))
-
-	db, err := gorm.Open(sqlite.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(filepath.Join(t.TempDir(), "test.db")), &gorm.Config{})
 	if err != nil {
-		t.Fatalf("failed to open in-memory database: %v", err)
+		t.Fatalf("failed to open test database: %v", err)
 	}
-
-	sqlDB, err := db.DB()
-	if err != nil {
-		t.Fatalf("failed to get sql db: %v", err)
-	}
-	sqlDB.SetMaxOpenConns(1)
 
 	if err := db.AutoMigrate(&urls.URL{}); err != nil {
 		t.Fatalf("failed to migrate schema: %v", err)

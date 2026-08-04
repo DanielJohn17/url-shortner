@@ -72,7 +72,7 @@ func TestHandlerCreate(t *testing.T) {
 		}
 	})
 
-	t.Run("duplicate long url is accepted again", func(t *testing.T) {
+	t.Run("duplicate long url returns the same short code", func(t *testing.T) {
 		r, db := buildAppWithDB(t)
 
 		first := doRequest(t, r, http.MethodPost, "/api/url_shorter", jsonBody(`{"long_url":"https://example.com/dup"}`))
@@ -83,6 +83,19 @@ func TestHandlerCreate(t *testing.T) {
 		second := doRequest(t, r, http.MethodPost, "/api/url_shorter", jsonBody(`{"long_url":"https://example.com/dup"}`))
 		if second.Code != http.StatusCreated {
 			t.Fatalf("expected 201 on duplicate, got %d (body: %s)", second.Code, second.Body.String())
+		}
+
+		var firstBody, secondBody struct {
+			ShortURL string `json:"short_url"`
+		}
+		if err := json.Unmarshal(first.Body.Bytes(), &firstBody); err != nil {
+			t.Fatalf("bad first body: %v", err)
+		}
+		if err := json.Unmarshal(second.Body.Bytes(), &secondBody); err != nil {
+			t.Fatalf("bad second body: %v", err)
+		}
+		if firstBody.ShortURL != secondBody.ShortURL {
+			t.Errorf("expected same short code on duplicate, got %q and %q", firstBody.ShortURL, secondBody.ShortURL)
 		}
 
 		var count int64
@@ -97,11 +110,23 @@ func TestHandlerCreate(t *testing.T) {
 	t.Run("canonicalized equivalent url deduplicates", func(t *testing.T) {
 		r, db := buildAppWithDB(t)
 
+		var first, second struct {
+			ShortURL string `json:"short_url"`
+		}
+
 		if w := doRequest(t, r, http.MethodPost, "/api/url_shorter", jsonBody(`{"long_url":"https://example.com/canon"}`)); w.Code != http.StatusCreated {
 			t.Fatalf("first create failed: %d %s", w.Code, w.Body.String())
+		} else if err := json.Unmarshal(w.Body.Bytes(), &first); err != nil {
+			t.Fatalf("bad first body: %v", err)
 		}
 		if w := doRequest(t, r, http.MethodPost, "/api/url_shorter", jsonBody(`{"long_url":"https://EXAMPLE.com:443/canon"}`)); w.Code != http.StatusCreated {
 			t.Fatalf("second create failed: %d %s", w.Code, w.Body.String())
+		} else if err := json.Unmarshal(w.Body.Bytes(), &second); err != nil {
+			t.Fatalf("bad second body: %v", err)
+		}
+
+		if first.ShortURL != second.ShortURL {
+			t.Errorf("expected same short code for equivalent urls, got %q and %q", first.ShortURL, second.ShortURL)
 		}
 
 		var count int64

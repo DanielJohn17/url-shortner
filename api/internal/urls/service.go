@@ -2,14 +2,12 @@ package urls
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/DanielJohn17/url-shortner/api/internal/helpers"
 )
 
 type URLServiceInt interface {
-	CreateWithDelay(cxt context.Context, longUrl string) (string, error)
+	Create(cxt context.Context, longUrl string) (string, error)
 	GetUrl(cxt context.Context, shortUrl string) (string, error)
 }
 
@@ -23,47 +21,29 @@ func NewUrlService(r *URLRepository) *URLService {
 	}
 }
 
-func (s *URLService) CreateWithDelay(cxt context.Context, longUrl string) (string, error) {
+func (s *URLService) Create(cxt context.Context, longUrl string) (string, error) {
 	canonicalUrl, err := helpers.CanonicalizeBasic(longUrl)
 	if err != nil {
 		return "", err
 	}
 
-	maxAttempts := 5
-	delay := 1 * time.Millisecond
+	hashCode := helpers.HashString(canonicalUrl)
+	shortcode := helpers.EncodeBytes(hashCode[:])
 
-	for attempt := 1; attempt <= maxAttempts; attempt++ {
-		hashCode := helpers.HashString(canonicalUrl)
-		shortcode := helpers.EncodeBytes(hashCode[:])
-
-		url := &URL{
-			ShortUrl: shortcode[:6],
-			LongUrl:  longUrl,
-		}
-
-		createdUrl, err := s.repo.Create(cxt, url)
-		if err == nil {
-			return createdUrl.ShortUrl, err
-		}
-
-		fmt.Printf(
-			"[Attempt %d/%d] Insert failed: %v. Retrying in %v...\n",
-			attempt,
-			maxAttempts,
-			err,
-			delay,
-		)
-
-		if attempt < maxAttempts {
-			select {
-			case <-cxt.Done():
-				return "", fmt.Errorf("Failed to create short link")
-			case <-time.After(delay):
-				delay *= 2
-			}
-		}
-
+	existingUrl, err := s.repo.GetUrl(cxt, shortcode[:6])
+	if err == nil {
+		return existingUrl.ShortUrl, nil
 	}
 
-	return "", fmt.Errorf("failed to create short link after %d attempts.", maxAttempts)
+	url := &URL{
+		ShortUrl: shortcode[:6],
+		LongUrl:  longUrl,
+	}
+
+	createdUrl, err := s.repo.Create(cxt, url)
+	if err != nil {
+		return "", err
+	}
+
+	return createdUrl.ShortUrl, nil
 }

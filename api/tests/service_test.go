@@ -8,12 +8,12 @@ import (
 	"github.com/DanielJohn17/url-shortner/api/internal/urls"
 )
 
-func TestServiceCreateWithDelay(t *testing.T) {
+func TestServiceCreate(t *testing.T) {
 	db := setupTestDB(t)
 	svc := urls.NewUrlService(urls.NewURLRepository(db))
 
 	t.Run("creates a 6-char short code", func(t *testing.T) {
-		code, err := svc.CreateWithDelay(context.Background(), "https://example.com/x")
+		code, err := svc.Create(context.Background(), "https://example.com/x")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -22,12 +22,12 @@ func TestServiceCreateWithDelay(t *testing.T) {
 		}
 	})
 
-	t.Run("is deterministic for the same url", func(t *testing.T) {
-		a, err := svc.CreateWithDelay(context.Background(), "https://example.com/y")
+	t.Run("returns the same code for the same url", func(t *testing.T) {
+		a, err := svc.Create(context.Background(), "https://example.com/y")
 		if err != nil {
 			t.Fatalf("first call failed: %v", err)
 		}
-		b, err := svc.CreateWithDelay(context.Background(), "https://example.com/y")
+		b, err := svc.Create(context.Background(), "https://example.com/y")
 		if err != nil {
 			t.Fatalf("second call failed: %v", err)
 		}
@@ -37,11 +37,11 @@ func TestServiceCreateWithDelay(t *testing.T) {
 	})
 
 	t.Run("canonicalized equivalent urls map to the same code", func(t *testing.T) {
-		code, err := svc.CreateWithDelay(context.Background(), "https://example.com/path")
+		code, err := svc.Create(context.Background(), "https://example.com/path")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
-		equiv, err := svc.CreateWithDelay(context.Background(), "https://Example.com:443/path")
+		equiv, err := svc.Create(context.Background(), "https://Example.com:443/path")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -50,19 +50,24 @@ func TestServiceCreateWithDelay(t *testing.T) {
 		}
 	})
 
-	t.Run("duplicate create returns an error", func(t *testing.T) {
+	t.Run("duplicate create returns the existing short code", func(t *testing.T) {
 		svc2 := urls.NewUrlService(urls.NewURLRepository(setupTestDB(t)))
 
-		if _, err := svc2.CreateWithDelay(context.Background(), "https://example.com/dup"); err != nil {
+		first, err := svc2.Create(context.Background(), "https://example.com/dup")
+		if err != nil {
 			t.Fatalf("seed failed: %v", err)
 		}
-		if _, err := svc2.CreateWithDelay(context.Background(), "https://example.com/dup"); err == nil {
-			t.Fatal("expected error on duplicate create, got nil")
+		second, err := svc2.Create(context.Background(), "https://example.com/dup")
+		if err != nil {
+			t.Fatalf("duplicate create returned an error: %v", err)
+		}
+		if first != second {
+			t.Errorf("expected same short code for duplicate create, got %q and %q", first, second)
 		}
 	})
 
 	t.Run("accepts empty long url", func(t *testing.T) {
-		code, err := svc.CreateWithDelay(context.Background(), "")
+		code, err := svc.Create(context.Background(), "")
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
@@ -72,7 +77,7 @@ func TestServiceCreateWithDelay(t *testing.T) {
 	})
 
 	t.Run("rejects malformed url", func(t *testing.T) {
-		if _, err := svc.CreateWithDelay(context.Background(), "https://example.com/%zz"); err == nil {
+		if _, err := svc.Create(context.Background(), "https://example.com/%zz"); err == nil {
 			t.Fatal("expected error for malformed url, got nil")
 		}
 	})
@@ -80,7 +85,7 @@ func TestServiceCreateWithDelay(t *testing.T) {
 	t.Run("honors a canceled context", func(t *testing.T) {
 		svc2 := urls.NewUrlService(urls.NewURLRepository(setupTestDB(t)))
 
-		if _, err := svc2.CreateWithDelay(context.Background(), "https://example.com/cancel"); err != nil {
+		if _, err := svc2.Create(context.Background(), "https://example.com/cancel"); err != nil {
 			t.Fatalf("seed failed: %v", err)
 		}
 
@@ -88,7 +93,7 @@ func TestServiceCreateWithDelay(t *testing.T) {
 		defer cancel()
 		time.Sleep(2 * time.Millisecond)
 
-		if _, err := svc2.CreateWithDelay(ctx, "https://example.com/cancel"); err == nil {
+		if _, err := svc2.Create(ctx, "https://example.com/cancel"); err == nil {
 			t.Fatal("expected error with canceled context, got nil")
 		}
 	})

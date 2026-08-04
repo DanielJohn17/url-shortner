@@ -19,7 +19,9 @@ func CanonicalizeBasic(rawURL string) (string, error) {
 		u.Host = u.Hostname()
 	}
 
-	u.Path = u.EscapedPath()
+	if escaped := u.EscapedPath(); escaped != u.Path {
+		u.RawPath = escaped
+	}
 
 	return u.String(), nil
 }
