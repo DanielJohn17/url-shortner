@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/DanielJohn17/url-shortner/api/internal/config"
 	"github.com/DanielJohn17/url-shortner/api/internal/router"
@@ -20,8 +20,7 @@ func main() {
 	})
 
 	if err != nil {
-		log.Fatal("No database connection: ", err)
-		return
+		panic(fmt.Sprintf("No database connection: %v", err))		
 	}
 
 	// auto migrate tables for now

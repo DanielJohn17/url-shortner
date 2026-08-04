@@ -17,7 +17,10 @@ type Config struct {
 var Env = initConfig()
 
 func initConfig() Config {
-	godotenv.Load()
+	if err := godotenv.Load("../.env"); err != nil {
+		panic("Error loading env file")
+	}
+
 
 	return Config{
 		DBHost:     GetEnv("DB_HOST", "localhost"),
