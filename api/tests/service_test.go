@@ -9,8 +9,7 @@ import (
 )
 
 func TestServiceCreate(t *testing.T) {
-	db := setupTestDB(t)
-	svc := urls.NewUrlService(urls.NewURLRepository(db))
+	svc := urls.NewUrlService(newTestURLRepository(t))
 
 	t.Run("creates a 6-char short code", func(t *testing.T) {
 		code, err := svc.Create(context.Background(), "https://example.com/x")
@@ -51,7 +50,7 @@ func TestServiceCreate(t *testing.T) {
 	})
 
 	t.Run("duplicate create returns the existing short code", func(t *testing.T) {
-		svc2 := urls.NewUrlService(urls.NewURLRepository(setupTestDB(t)))
+		svc2 := urls.NewUrlService(newTestURLRepository(t))
 
 		first, err := svc2.Create(context.Background(), "https://example.com/dup")
 		if err != nil {
@@ -83,7 +82,7 @@ func TestServiceCreate(t *testing.T) {
 	})
 
 	t.Run("honors a canceled context", func(t *testing.T) {
-		svc2 := urls.NewUrlService(urls.NewURLRepository(setupTestDB(t)))
+		svc2 := urls.NewUrlService(newTestURLRepository(t))
 
 		if _, err := svc2.Create(context.Background(), "https://example.com/cancel"); err != nil {
 			t.Fatalf("seed failed: %v", err)
@@ -100,8 +99,7 @@ func TestServiceCreate(t *testing.T) {
 }
 
 func TestServiceGetUrl(t *testing.T) {
-	db := setupTestDB(t)
-	svc := urls.NewUrlService(urls.NewURLRepository(db))
+	svc := urls.NewUrlService(newTestURLRepository(t))
 
 	t.Run("returns the long url for an existing short code", func(t *testing.T) {
 		code, err := svc.Create(context.Background(), "https://example.com/resolve")

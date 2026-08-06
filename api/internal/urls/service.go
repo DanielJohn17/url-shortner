@@ -7,8 +7,8 @@ import (
 )
 
 type URLServiceInt interface {
-	Create(cxt context.Context, longUrl string) (string, error)
-	GetUrl(cxt context.Context, shortUrl string) (string, error)
+	Create(ctx context.Context, longUrl string) (string, error)
+	GetUrl(ctx context.Context, shortUrl string) (string, error)
 }
 
 type URLService struct {
@@ -21,7 +21,7 @@ func NewUrlService(r *URLRepository) *URLService {
 	}
 }
 
-func (s *URLService) Create(cxt context.Context, longUrl string) (string, error) {
+func (s *URLService) Create(ctx context.Context, longUrl string) (string, error) {
 	canonicalUrl, err := helpers.CanonicalizeBasic(longUrl)
 	if err != nil {
 		return "", err
@@ -30,7 +30,7 @@ func (s *URLService) Create(cxt context.Context, longUrl string) (string, error)
 	hashCode := helpers.HashString(canonicalUrl)
 	shortcode := helpers.EncodeBytes(hashCode[:])
 
-	existingUrl, err := s.repo.GetUrl(cxt, shortcode[:6])
+	existingUrl, err := s.repo.GetUrl(ctx, shortcode[:6])
 	if err == nil {
 		return existingUrl.ShortUrl, nil
 	}
@@ -40,7 +40,7 @@ func (s *URLService) Create(cxt context.Context, longUrl string) (string, error)
 		LongUrl:  longUrl,
 	}
 
-	createdUrl, err := s.repo.Create(cxt, url)
+	createdUrl, err := s.repo.Create(ctx, url)
 	if err != nil {
 		return "", err
 	}
@@ -48,8 +48,8 @@ func (s *URLService) Create(cxt context.Context, longUrl string) (string, error)
 	return createdUrl.ShortUrl, nil
 }
 
-func (s *URLService) GetUrl(cxt context.Context, shortUrl string) (string, error) {
-	url, err := s.repo.GetUrl(cxt, shortUrl)
+func (s *URLService) GetUrl(ctx context.Context, shortUrl string) (string, error) {
+	url, err := s.repo.GetUrl(ctx, shortUrl)
 	if err != nil {
 		return "", err
 	}

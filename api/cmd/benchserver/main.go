@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	"github.com/DanielJohn17/url-shortner/api/internal/cache"
 	"github.com/DanielJohn17/url-shortner/api/internal/config"
 	"github.com/DanielJohn17/url-shortner/api/internal/storage"
 	"github.com/DanielJohn17/url-shortner/api/internal/urls"
@@ -26,7 +27,19 @@ func main() {
 		panic(fmt.Sprintf("No database connection: %v", err))
 	}
 
-	handler := urls.NewUrlHandler(urls.NewUrlService(urls.NewURLRepository(db)))
+	rdb, err := cache.NewChacheStorage(cache.RedisConfig{
+		Addr:     config.Env.RedisAddr,
+		Password: config.Env.RedisPassword,
+		DB:       int(config.Env.RedisDB),
+		Protocol: int(config.Env.RedisProtocol),
+	})
+	if err != nil {
+		panic(fmt.Sprintf("Error connecting to redis: %v", err))
+	}
+	defer rdb.Close()
+
+	urlCacheRepo := cache.NewUrlCacheRepository(rdb)
+	handler := urls.NewUrlHandler(urls.NewUrlService(urls.NewURLRepository(db, urlCacheRepo)))
 
 	router := gin.New()
 	router.Use(gin.Recovery())

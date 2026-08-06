@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 
+	_ "github.com/DanielJohn17/url-shortner/api/docs"
+	"github.com/DanielJohn17/url-shortner/api/internal/cache"
 	"github.com/DanielJohn17/url-shortner/api/internal/config"
 	"github.com/DanielJohn17/url-shortner/api/internal/router"
 	"github.com/DanielJohn17/url-shortner/api/internal/storage"
 	"github.com/DanielJohn17/url-shortner/api/internal/urls"
-	_ "github.com/DanielJohn17/url-shortner/api/docs"
 )
 
 // @title URL Shortner API
@@ -26,14 +27,30 @@ func main() {
 	})
 
 	if err != nil {
-		panic(fmt.Sprintf("No database connection: %v", err))		
+		panic(fmt.Sprintf("No database connection: %v", err))
 	}
+
+	rdb, err := cache.NewChacheStorage(cache.RedisConfig{
+		Addr:     config.Env.RedisAddr,
+		Password: config.Env.RedisPassword,
+		DB:       int(config.Env.RedisDB),
+		Protocol: int(config.Env.RedisProtocol),
+	})
+
+	if err != nil {
+		panic(fmt.Sprintf("Error connecting to redis: %v", err))
+	}
+
+	defer rdb.Close()
 
 	// auto migrate tables for now
 	db.AutoMigrate(&urls.URL{})
 
+	// cache module setup
+	urlCacheRepo := cache.NewUrlCacheRepository(rdb)
+
 	// urls module setup
-	urlRepo := urls.NewURLRepository(db)
+	urlRepo := urls.NewURLRepository(db, urlCacheRepo)
 	urlService := urls.NewUrlService(urlRepo)
 	urlHandler := urls.NewUrlHandler(urlService)
 

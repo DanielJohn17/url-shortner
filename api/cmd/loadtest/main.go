@@ -14,9 +14,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/DanielJohn17/url-shortner/api/internal/cache"
 	"github.com/DanielJohn17/url-shortner/api/internal/config"
 	"github.com/DanielJohn17/url-shortner/api/internal/storage"
 	"github.com/DanielJohn17/url-shortner/api/internal/urls"
+	"github.com/redis/go-redis/v9"
 	"gorm.io/gorm"
 )
 
@@ -68,9 +70,23 @@ func connect() *gorm.DB {
 	return db
 }
 
+func connectCache() *cache.URLCacheRepository {
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     config.Env.RedisAddr,
+		Password: config.Env.RedisPassword,
+		DB:       int(config.Env.RedisDB),
+		Protocol: int(config.Env.RedisProtocol),
+	})
+	if err := rdb.Ping(context.Background()).Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "redis connect failed:", err)
+		os.Exit(1)
+	}
+	return cache.NewUrlCacheRepository(rdb)
+}
+
 func seed(count int) {
 	db := connect()
-	repo := urls.NewURLRepository(db)
+	repo := urls.NewURLRepository(db, connectCache())
 	ctx := context.Background()
 
 	seen := map[string]bool{}

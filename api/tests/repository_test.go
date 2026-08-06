@@ -9,8 +9,7 @@ import (
 
 func TestRepositoryCreate(t *testing.T) {
 	t.Run("creates new url", func(t *testing.T) {
-		db := setupTestDB(t)
-		repo := urls.NewURLRepository(db)
+		repo := newTestURLRepository(t)
 
 		created, err := repo.Create(context.Background(), &urls.URL{ShortUrl: "abc123", LongUrl: "https://example.com/x"})
 		if err != nil {
@@ -22,8 +21,7 @@ func TestRepositoryCreate(t *testing.T) {
 	})
 
 	t.Run("duplicate short url returns error", func(t *testing.T) {
-		db := setupTestDB(t)
-		repo := urls.NewURLRepository(db)
+		repo := newTestURLRepository(t)
 		ctx := context.Background()
 
 		if _, err := repo.Create(ctx, &urls.URL{ShortUrl: "abc123", LongUrl: "https://example.com/x"}); err != nil {
@@ -36,8 +34,7 @@ func TestRepositoryCreate(t *testing.T) {
 	})
 
 	t.Run("empty short url", func(t *testing.T) {
-		db := setupTestDB(t)
-		repo := urls.NewURLRepository(db)
+		repo := newTestURLRepository(t)
 
 		created, err := repo.Create(context.Background(), &urls.URL{ShortUrl: "", LongUrl: "https://example.com/z"})
 		if err != nil {
@@ -51,8 +48,7 @@ func TestRepositoryCreate(t *testing.T) {
 
 func TestRepositoryGetUrl(t *testing.T) {
 	t.Run("finds existing url", func(t *testing.T) {
-		db := setupTestDB(t)
-		repo := urls.NewURLRepository(db)
+		repo := newTestURLRepository(t)
 		ctx := context.Background()
 
 		if _, err := repo.Create(ctx, &urls.URL{ShortUrl: "findme", LongUrl: "https://example.com/find"}); err != nil {
@@ -69,8 +65,7 @@ func TestRepositoryGetUrl(t *testing.T) {
 	})
 
 	t.Run("missing url returns error", func(t *testing.T) {
-		db := setupTestDB(t)
-		repo := urls.NewURLRepository(db)
+		repo := newTestURLRepository(t)
 
 		if _, err := repo.GetUrl(context.Background(), "missing"); err == nil {
 			t.Fatal("expected not-found error, got nil")
@@ -78,8 +73,7 @@ func TestRepositoryGetUrl(t *testing.T) {
 	})
 
 	t.Run("empty short url returns error", func(t *testing.T) {
-		db := setupTestDB(t)
-		repo := urls.NewURLRepository(db)
+		repo := newTestURLRepository(t)
 
 		if _, err := repo.GetUrl(context.Background(), ""); err == nil {
 			t.Fatal("expected error for empty short url, got nil")
