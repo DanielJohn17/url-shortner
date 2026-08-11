@@ -3,7 +3,6 @@ package tests
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
 	"net/http/httptest"
 	"path/filepath"
@@ -43,7 +42,7 @@ func (f *fakeURLCache) GetUrl(ctx context.Context, shortUrl string) (*cache.UrlC
 
 	item, ok := f.items[shortUrl]
 	if !ok {
-		return nil, fmt.Errorf("Url not found on cache")
+		return nil, cache.ErrCacheMiss
 	}
 
 	return &item, nil

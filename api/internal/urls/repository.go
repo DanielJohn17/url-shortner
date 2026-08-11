@@ -2,6 +2,7 @@ package urls
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/DanielJohn17/url-shortner/api/internal/cache"
@@ -45,11 +46,13 @@ func (r *URLRepository) GetUrl(ctx context.Context, shortUrl string) (*URL, erro
 	urlCache, err := r.cache.GetUrl(ctx, shortUrl)
 	if err == nil {
 		return &URL{
-			ShortUrl:  urlCache.ShortUrl,
-			LongUrl:   urlCache.LongUrl,
-			UsedCount: urlCache.UsedCount,
-			CreatedAt: urlCache.CreatedAt,
+			ShortUrl: urlCache.ShortUrl,
+			LongUrl:  urlCache.LongUrl,
 		}, nil
+	}
+
+	if !errors.Is(err, cache.ErrCacheMiss) {
+		return nil, fmt.Errorf("cache lookup failed: %w", err)
 	}
 
 	url, err := gorm.G[URL](r.db).Where("short_url = ?", shortUrl).First(ctx)
@@ -64,10 +67,8 @@ func (r *URLRepository) GetUrl(ctx context.Context, shortUrl string) (*URL, erro
 
 func (r *URLRepository) saveToCache(ctx context.Context, url *URL) {
 	urlCache := &cache.UrlCache{
-		ShortUrl:  url.ShortUrl,
-		LongUrl:   url.LongUrl,
-		UsedCount: url.UsedCount,
-		CreatedAt: url.CreatedAt,
+		ShortUrl: url.ShortUrl,
+		LongUrl:  url.LongUrl,
 	}
 
 	if err := r.cache.SetUrl(ctx, urlCache); err != nil {
