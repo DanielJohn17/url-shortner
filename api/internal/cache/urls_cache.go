@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/DanielJohn17/url-shortner/api/internal/config"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -16,6 +15,7 @@ type URLCacheRepositoryInt interface {
 
 type URLCacheRepository struct {
 	rdb *redis.Client
+	exp time.Duration
 }
 
 type UrlCache struct {
@@ -25,9 +25,13 @@ type UrlCache struct {
 	CreatedAt time.Time `redis:"created_at"`
 }
 
-func NewUrlCacheRepository(rdb *redis.Client) *URLCacheRepository {
+// asserts *URLCacheRepository satisfies URLCacheRepositoryInt at compile time
+var _ URLCacheRepositoryInt = (*URLCacheRepository)(nil)
+
+func NewUrlCacheRepository(rdb *redis.Client, exp time.Duration) URLCacheRepositoryInt {
 	return &URLCacheRepository{
 		rdb: rdb,
+		exp: exp,
 	}
 }
 
@@ -53,11 +57,9 @@ func (c *URLCacheRepository) GetUrl(ctx context.Context, shortUrl string) (*UrlC
 }
 
 func (c *URLCacheRepository) SetUrl(ctx context.Context, url *UrlCache) error {
-	exp := time.Duration(config.Env.RedisExpInSeconds) * time.Second
-
 	_, err := c.rdb.Pipelined(ctx, func(pipe redis.Pipeliner) error {
 		pipe.HSet(ctx, url.ShortUrl, url)
-		pipe.Expire(ctx, url.ShortUrl, exp)
+		pipe.Expire(ctx, url.ShortUrl, c.exp)
 		return nil
 	})
 

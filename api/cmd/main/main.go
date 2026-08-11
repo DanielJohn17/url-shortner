@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	_ "github.com/DanielJohn17/url-shortner/api/docs"
 	"github.com/DanielJohn17/url-shortner/api/internal/cache"
@@ -30,7 +31,7 @@ func main() {
 		panic(fmt.Sprintf("No database connection: %v", err))
 	}
 
-	rdb, err := cache.NewChacheStorage(cache.RedisConfig{
+	rdb, err := cache.NewCacheStorage(cache.RedisConfig{
 		Addr:     config.Env.RedisAddr,
 		Password: config.Env.RedisPassword,
 		DB:       int(config.Env.RedisDB),
@@ -47,7 +48,7 @@ func main() {
 	db.AutoMigrate(&urls.URL{})
 
 	// cache module setup
-	urlCacheRepo := cache.NewUrlCacheRepository(rdb)
+	urlCacheRepo := cache.NewUrlCacheRepository(rdb, time.Duration(config.Env.RedisExpInSeconds)*time.Second)
 
 	// urls module setup
 	urlRepo := urls.NewURLRepository(db, urlCacheRepo)

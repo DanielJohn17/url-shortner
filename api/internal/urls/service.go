@@ -15,6 +15,8 @@ type URLService struct {
 	repo *URLRepository
 }
 
+var _ URLServiceInt = (*URLService)(nil)
+
 func NewUrlService(r *URLRepository) *URLService {
 	return &URLService{
 		repo: r,

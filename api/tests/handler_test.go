@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/DanielJohn17/url-shortner/api/internal/cache"
 	"github.com/DanielJohn17/url-shortner/api/internal/urls"
 )
 
@@ -160,7 +159,7 @@ func TestHandlerStoredShortUrlIsResolvable(t *testing.T) {
 		t.Fatal("could not extract short code")
 	}
 
-	repo := urls.NewURLRepository(db, cache.NewUrlCacheRepository(setupTestRedis(t)))
+	repo := urls.NewURLRepository(db, newFakeURLCache())
 	got, err := repo.GetUrl(context.Background(), code)
 	if err != nil {
 		t.Fatalf("stored short url not resolvable: %v", err)

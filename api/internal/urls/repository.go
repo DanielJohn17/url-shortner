@@ -15,10 +15,12 @@ type URLRepositoryInt interface {
 
 type URLRepository struct {
 	db    *gorm.DB
-	cache *cache.URLCacheRepository
+	cache cache.URLCacheRepositoryInt
 }
 
-func NewURLRepository(db *gorm.DB, cache *cache.URLCacheRepository) *URLRepository {
+var _ URLRepositoryInt = (*URLRepository)(nil)
+
+func NewURLRepository(db *gorm.DB, cache cache.URLCacheRepositoryInt) *URLRepository {
 	return &URLRepository{
 		db:    db,
 		cache: cache,

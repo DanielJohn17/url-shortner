@@ -70,7 +70,7 @@ func connect() *gorm.DB {
 	return db
 }
 
-func connectCache() *cache.URLCacheRepository {
+func connectCache() cache.URLCacheRepositoryInt {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     config.Env.RedisAddr,
 		Password: config.Env.RedisPassword,
@@ -81,7 +81,7 @@ func connectCache() *cache.URLCacheRepository {
 		fmt.Fprintln(os.Stderr, "redis connect failed:", err)
 		os.Exit(1)
 	}
-	return cache.NewUrlCacheRepository(rdb)
+	return cache.NewUrlCacheRepository(rdb, time.Duration(config.Env.RedisExpInSeconds)*time.Second)
 }
 
 func seed(count int) {

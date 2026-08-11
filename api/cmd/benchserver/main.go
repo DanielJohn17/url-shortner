@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/DanielJohn17/url-shortner/api/internal/cache"
 	"github.com/DanielJohn17/url-shortner/api/internal/config"
@@ -27,7 +28,7 @@ func main() {
 		panic(fmt.Sprintf("No database connection: %v", err))
 	}
 
-	rdb, err := cache.NewChacheStorage(cache.RedisConfig{
+	rdb, err := cache.NewCacheStorage(cache.RedisConfig{
 		Addr:     config.Env.RedisAddr,
 		Password: config.Env.RedisPassword,
 		DB:       int(config.Env.RedisDB),
@@ -38,7 +39,7 @@ func main() {
 	}
 	defer rdb.Close()
 
-	urlCacheRepo := cache.NewUrlCacheRepository(rdb)
+	urlCacheRepo := cache.NewUrlCacheRepository(rdb, time.Duration(config.Env.RedisExpInSeconds)*time.Second)
 	handler := urls.NewUrlHandler(urls.NewUrlService(urls.NewURLRepository(db, urlCacheRepo)))
 
 	router := gin.New()
@@ -52,3 +53,4 @@ func main() {
 	fmt.Println("benchserver on :8081 (no gin Logger middleware)")
 	router.Run(":8081")
 }
+

@@ -13,7 +13,7 @@ type RedisConfig struct {
 	Protocol int
 }
 
-func NewChacheStorage(config RedisConfig) (*redis.Client, error) {
+func NewCacheStorage(config RedisConfig) (*redis.Client, error) {
 	ctx := context.Background()
 
 	rdb := redis.NewClient(&redis.Options{

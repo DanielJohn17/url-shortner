@@ -3,25 +3,63 @@ package tests
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http/httptest"
 	"path/filepath"
+	"sync"
 	"testing"
 
 	"github.com/DanielJohn17/url-shortner/api/internal/cache"
 	"github.com/DanielJohn17/url-shortner/api/internal/router"
 	"github.com/DanielJohn17/url-shortner/api/internal/urls"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
 	_ "github.com/DanielJohn17/url-shortner/api/docs"
 )
 
-// testRedisDB is a dedicated Redis DB index used only by the test suite so it
-// never collides with real Redis data on the default DB.
-const testRedisDB = 15
+// fakeURLCache is an in-memory implementation of cache.URLCacheRepositoryInt
+// used so tests run without a live Redis server.
+type fakeURLCache struct {
+	mu    sync.Mutex
+	items map[string]cache.UrlCache
+}
+
+var _ cache.URLCacheRepositoryInt = (*fakeURLCache)(nil)
+
+func newFakeURLCache() *fakeURLCache {
+	return &fakeURLCache{items: make(map[string]cache.UrlCache)}
+}
+
+func (f *fakeURLCache) GetUrl(ctx context.Context, shortUrl string) (*cache.UrlCache, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	item, ok := f.items[shortUrl]
+	if !ok {
+		return nil, fmt.Errorf("Url not found on cache")
+	}
+
+	return &item, nil
+}
+
+func (f *fakeURLCache) SetUrl(ctx context.Context, url *cache.UrlCache) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	f.mu.Lock()
+	defer f.mu.Unlock()
+
+	f.items[url.ShortUrl] = *url
+	return nil
+}
 
 func setupTestDB(t *testing.T) *gorm.DB {
 	t.Helper()
@@ -38,46 +76,20 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	return db
 }
 
-func setupTestRedis(t *testing.T) *redis.Client {
-	t.Helper()
-
-	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Protocol: 3,
-		DB:       testRedisDB,
-	})
-
-	if err := rdb.Ping(context.Background()).Err(); err != nil {
-		t.Fatalf("failed to connect to test redis: %v", err)
-	}
-
-	if err := rdb.FlushDB(context.Background()).Err(); err != nil {
-		t.Fatalf("failed to flush test redis: %v", err)
-	}
-
-	return rdb
-}
-
 func newTestURLRepository(t *testing.T) *urls.URLRepository {
 	t.Helper()
 
 	db := setupTestDB(t)
-	rdb := setupTestRedis(t)
-	urlCacheRepo := cache.NewUrlCacheRepository(rdb)
+	urlCacheRepo := newFakeURLCache()
 
-	repo := urls.NewURLRepository(db, urlCacheRepo)
-	t.Cleanup(func() { rdb.Close() })
-
-	return repo
+	return urls.NewURLRepository(db, urlCacheRepo)
 }
 
 func buildAppWithDB(t *testing.T) (*gin.Engine, *gorm.DB) {
 	t.Helper()
 
 	db := setupTestDB(t)
-	rdb := setupTestRedis(t)
-	urlCacheRepo := cache.NewUrlCacheRepository(rdb)
-	t.Cleanup(func() { rdb.Close() })
+	urlCacheRepo := newFakeURLCache()
 
 	repo := urls.NewURLRepository(db, urlCacheRepo)
 	svc := urls.NewUrlService(repo)

@@ -18,6 +18,8 @@ type URLHandler struct {
 	service *URLService
 }
 
+var _ URLHandlerInt = (*URLHandler)(nil)
+
 func NewUrlHandler(s *URLService) *URLHandler {
 	return &URLHandler{service: s}
 }
