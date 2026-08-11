@@ -72,10 +72,12 @@ func connect() *gorm.DB {
 
 func connectCache() cache.URLCacheRepositoryInt {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     config.Env.RedisAddr,
-		Password: config.Env.RedisPassword,
-		DB:       int(config.Env.RedisDB),
-		Protocol: int(config.Env.RedisProtocol),
+		Addr:           config.Env.RedisAddr,
+		Password:       config.Env.RedisPassword,
+		DB:             int(config.Env.RedisDB),
+		Protocol:       int(config.Env.RedisProtocol),
+		MaxIdleConns:   int(config.Env.RedisMaxIdleConns),
+		MaxActiveConns: int(config.Env.RedisMaxActiveConns),
 	})
 	if err := rdb.Ping(context.Background()).Err(); err != nil {
 		fmt.Fprintln(os.Stderr, "redis connect failed:", err)
@@ -159,7 +161,7 @@ func runBench(endpoint string, total, conc, rateRPS int, tag, seedFile string) {
 
 	worker := func(wid int) {
 		defer wg.Done()
-		loc := &resultCollector{lats: make([]time.Duration, 0, total/conc + 1000), status: map[int]int{}}
+		loc := &resultCollector{lats: make([]time.Duration, 0, total/conc+1000), status: map[int]int{}}
 		for range jobs {
 			if limiter != nil {
 				<-limiter

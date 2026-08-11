@@ -29,15 +29,21 @@ func main() {
 	}
 
 	rdb, err := cache.NewCacheStorage(cache.RedisConfig{
-		Addr:     config.Env.RedisAddr,
-		Password: config.Env.RedisPassword,
-		DB:       int(config.Env.RedisDB),
-		Protocol: int(config.Env.RedisProtocol),
+		Addr:           config.Env.RedisAddr,
+		Password:       config.Env.RedisPassword,
+		DB:             int(config.Env.RedisDB),
+		Protocol:       int(config.Env.RedisProtocol),
+		MaxIdleConns:   int(config.Env.RedisMaxIdleConns),
+		MaxActiveConns: int(config.Env.RedisMaxActiveConns),
 	})
 	if err != nil {
 		panic(fmt.Sprintf("Error connecting to redis: %v", err))
 	}
-	defer rdb.Close()
+	defer func() {
+		if err := rdb.Close(); err != nil {
+			fmt.Printf("Error closing redis connection: %v\n", err)
+		}
+	}()
 
 	urlCacheRepo := cache.NewUrlCacheRepository(rdb, time.Duration(config.Env.RedisExpInSeconds)*time.Second)
 	handler := urls.NewUrlHandler(urls.NewUrlService(urls.NewURLRepository(db, urlCacheRepo)))
@@ -53,4 +59,3 @@ func main() {
 	fmt.Println("benchserver on :8081 (no gin Logger middleware)")
 	router.Run(":8081")
 }
-
