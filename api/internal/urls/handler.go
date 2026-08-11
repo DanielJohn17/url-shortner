@@ -12,6 +12,7 @@ import (
 type URLHandlerInt interface {
 	Create(c *gin.Context)
 	RedirectUrl(c *gin.Context)
+	Redirect(c *gin.Context)
 }
 
 type URLHandler struct {
@@ -86,4 +87,27 @@ func (h *URLHandler) RedirectUrl(c *gin.Context) {
 		"success":  true,
 		"long_url": longUrl,
 	})
+}
+
+// Redirect godoc
+// @Summary Redirect a short code
+// @Description Looks up the long URL for a short code and redirects the browser.
+// @Tags urls
+// @Param shortUrl path string true "Short code to resolve"
+// @Success 302 {header} string Location "Long URL to redirect to"
+// @Failure 404 {object} map[string]interface{} "Short code not found"
+// @Router /{shortUrl} [get]
+func (h *URLHandler) Redirect(c *gin.Context) {
+	shortUrl := c.Param("shortUrl")
+
+	longUrl, err := h.service.GetUrl(c, shortUrl)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"success": false,
+			"error":   err.Error(),
+		})
+		return
+	}
+
+	c.Redirect(http.StatusFound, longUrl)
 }

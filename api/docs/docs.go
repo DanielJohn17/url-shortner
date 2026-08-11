@@ -35,7 +35,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/urls.UrlShort"
+                            "$ref": "#/definitions/internal_urls.UrlShort"
                         }
                     }
                 ],
@@ -100,10 +100,43 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/{shortUrl}": {
+            "get": {
+                "description": "Looks up the long URL for a short code and redirects the browser.",
+                "tags": [
+                    "urls"
+                ],
+                "summary": "Redirect a short code",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Short code to resolve",
+                        "name": "shortUrl",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "302": {
+                        "description": "Long URL to redirect to",
+                        "schema": {
+                            "type": "header"
+                        }
+                    },
+                    "404": {
+                        "description": "Short code not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "urls.UrlShort": {
+        "internal_urls.UrlShort": {
             "type": "object",
             "required": [
                 "long_url"

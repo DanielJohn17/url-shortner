@@ -1,6 +1,6 @@
 basePath: /api
 definitions:
-  urls.UrlShort:
+  internal_urls.UrlShort:
     properties:
       long_url:
         type: string
@@ -14,6 +14,28 @@ info:
   title: URL Shortner API
   version: "1.0"
 paths:
+  /{shortUrl}:
+    get:
+      description: Looks up the long URL for a short code and redirects the browser.
+      parameters:
+      - description: Short code to resolve
+        in: path
+        name: shortUrl
+        required: true
+        type: string
+      responses:
+        "302":
+          description: Long URL to redirect to
+          schema:
+            type: header
+        "404":
+          description: Short code not found
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Redirect a short code
+      tags:
+      - urls
   /url_shorter:
     post:
       consumes:
@@ -25,7 +47,7 @@ paths:
         name: payload
         required: true
         schema:
-          $ref: '#/definitions/urls.UrlShort'
+          $ref: '#/definitions/internal_urls.UrlShort'
       produces:
       - application/json
       responses:

@@ -21,5 +21,7 @@ func NewRoutes(h *Handlers) *gin.Engine {
 	subRouter.POST("/url_shorter", h.URL.Create)
 	subRouter.GET("/url_shorter/:shortUrl", h.URL.RedirectUrl)
 
+	router.GET("/:shortUrl", h.URL.Redirect)
+
 	return router
 }

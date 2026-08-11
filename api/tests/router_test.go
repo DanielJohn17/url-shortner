@@ -46,6 +46,32 @@ func TestRouterRoutes(t *testing.T) {
 		}
 	})
 
+	t.Run("GET /:shortUrl redirects to the long url", func(t *testing.T) {
+		create := doRequest(t, r, http.MethodPost, "/api/url_shorter", jsonBody(`{"long_url":"https://example.com/root-redirect"}`))
+		if create.Code != http.StatusCreated {
+			t.Fatalf("create failed: %d %s", create.Code, create.Body.String())
+		}
+
+		var created struct {
+			ShortURL string `json:"short_url"`
+		}
+		if err := json.Unmarshal(create.Body.Bytes(), &created); err != nil {
+			t.Fatal(err)
+		}
+		code, ok := shortCode(t, created.ShortURL)
+		if !ok {
+			t.Fatal("could not extract short code")
+		}
+
+		w := doRequest(t, r, http.MethodGet, "/"+code, nil)
+		if w.Code != http.StatusFound {
+			t.Fatalf("expected 302, got %d (body: %s)", w.Code, w.Body.String())
+		}
+		if loc := w.Header().Get("Location"); loc != "https://example.com/root-redirect" {
+			t.Errorf("expected Location header %q, got %q", "https://example.com/root-redirect", loc)
+		}
+	})
+
 	t.Run("GET /swagger/index.html is served", func(t *testing.T) {
 		w := doRequest(t, r, http.MethodGet, "/swagger/index.html", nil)
 		if w.Code != http.StatusOK {
