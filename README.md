@@ -54,7 +54,8 @@ browser redirects.
 ├── web/                        # React frontend
 │   └── public/                 #   screenshots, favicon
 ├── Makefile                    # API task runner (build, run, test, vet, …)
-└── .env                        # API configuration (not committed)
+├── .env.example                # template for API configuration
+└── .env                        # API configuration (copied from .env.example, not committed)
 ```
 
 ## Getting Started
@@ -68,21 +69,32 @@ browser redirects.
 
 ### 1. Configure and run the API
 
-Copy the defaults from `.env` at the repository root (it is git-ignored):
+Copy the example env file to `.env` and adjust the values to match your local
+PostgreSQL and Redis:
+
+```bash
+cp .env.example .env
+```
 
 ```env
+# PostgreSQL
 DB_HOST=localhost
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_NAME=url_shortner_db
 DB_PORT=5432
+
+# Redis
 REDIS_ADDR=localhost:6379
 REDIS_PASS=""
 REDIS_DB=0
+REDIS_PROTOCOL=3
 REDIS_EXP_IN_SECONDS=86400
 REDIS_MAX_IDLE_CONNS=10
 REDIS_MAX_ACTIVE_CONNS=100
-D_NAME=localhost:8080        # domain used in generated short URLs
+
+# Domain used in generated short URLs (no scheme)
+D_NAME=localhost:8080
 ```
 
 Run the server:
