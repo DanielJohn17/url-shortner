@@ -403,16 +403,3 @@ Efficient (≈300 B/url), zero eviction/churn, zero connection drops — a healt
 - **Cold start also sustained 10.7k rps with 0 errors**, so Postgres handles the miss rate safely.
 - Write path (~3k rps/node) still needs horizontal scaling or async writes for 100M/day
   creation rates.
-
-#### 9. Deployment Readiness
-
-- Components: Postgres (pooled), Redis (in-memory, no persistence configured), single app node.
-- **Reads scale beyond 100M/day peak on a single node; writes are the scaling constraint.**
-- Tests: 66/66 passing. No errors across cold and hot paths.
-
-#### 10. Next Steps
-
-- Re-test the cold path at much larger `count` (>1M rows) to size Postgres under a high miss rate.
-- Decide Redis durability (AOF/persistence) if cache loss on restart is unacceptable; confirm cache
-  refresh-on-miss covers evicted/expired entries.
-- Consider client-side caching / CDN edge 302s to offload 100M/day reads.
