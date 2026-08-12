@@ -50,12 +50,15 @@ browser redirects.
 │   │   ├── storage/            #   Postgres connection
 │   │   └── urls/               #   handler / service / repository / model
 │   ├── docs/                   #   Swagger + performance reports
-│   └── tests/                  #   integration tests
+│   ├── tests/                  #   integration tests
+│   ├── .env.example            #   API env template (Postgres, Redis, App)
+│   └── .env                    #   API env (copied from .env.example, not committed)
 ├── web/                        # React frontend
-│   └── public/                 #   screenshots, favicon
+│   ├── public/                 #   screenshots, favicon
+│   ├── .env.example            #   Web env template (VITE_API_URL)
+│   └── .env                    #   Web env (copied from .env.example, not committed)
 ├── Makefile                    # API task runner (build, run, test, vet, …)
-├── .env.example                # template for API configuration
-└── .env                        # API configuration (copied from .env.example, not committed)
+└── render.yaml                 # Render deployment blueprint
 ```
 
 ## Getting Started
@@ -69,32 +72,40 @@ browser redirects.
 
 ### 1. Configure and run the API
 
-Copy the example env file to `.env` and adjust the values to match your local
-PostgreSQL and Redis:
+Copy the API env template and adjust values for your local Postgres and Redis:
 
 ```bash
-cp .env.example .env
+cp api/.env.example api/.env
 ```
 
+Edit `api/.env` — choose **Option A** (URL) or **Option B** (individual fields) for each service:
+
 ```env
-# PostgreSQL
+# ── Postgres ──────────────────────────────────────────────────────────────
+# Option A · Neon / any Postgres URL (takes priority when set)
+# DATABASE_URL=postgres://user:password@host/dbname?sslmode=require
+
+# Option B · Local Postgres
 DB_HOST=localhost
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_NAME=url_shortner_db
 DB_PORT=5432
 
-# Redis
+# ── Redis ──────────────────────────────────────────────────────────────────
+# Option A · Upstash TCP URL (takes priority when set)
+# REDIS_URL=rediss://default:password@host:port
+
+# Option B · Local Redis
 REDIS_ADDR=localhost:6379
-REDIS_PASS=""
+REDIS_PASS=
 REDIS_DB=0
 REDIS_PROTOCOL=3
 REDIS_EXP_IN_SECONDS=86400
-REDIS_MAX_IDLE_CONNS=10
-REDIS_MAX_ACTIVE_CONNS=100
 
-# Domain used in generated short URLs (no scheme)
-D_NAME=localhost:8080
+# ── App ────────────────────────────────────────────────────────────────────
+DOMAIN_NAME=localhost:8080
+PORT=8080
 ```
 
 Run the server:
@@ -107,6 +118,14 @@ The server listens on `:8080` and auto-migrates the `urls` table. Swagger is ava
 `http://localhost:8080/swagger/index.html`.
 
 ### 2. Run the web app
+
+Copy the web env template:
+
+```bash
+cp web/.env.example web/.env
+```
+
+Leave `VITE_API_URL` empty for local dev — Vite proxies `/api` to `localhost:8080` automatically.
 
 ```bash
 cd web

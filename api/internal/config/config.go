@@ -35,7 +35,7 @@ type Config struct {
 var Env = initConfig()
 
 func initConfig() Config {
-	_ = godotenv.Load("../.env")
+	_ = godotenv.Load(".env")
 
 	return Config{
 		// Postgres

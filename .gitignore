@@ -24,8 +24,10 @@ profile.cov
 go.work
 go.work.sum
 
-# env file
+# env files (local overrides — never commit these)
 .env
+api/.env
+web/.env
 
 # Editor/IDE
 # .idea/
