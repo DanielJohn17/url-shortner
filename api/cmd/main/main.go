@@ -20,11 +20,12 @@ import (
 func main() {
 
 	db, err := storage.NewDatabase(storage.DBConfig{
-		DBHost:     config.Env.DBHost,
-		DBUser:     config.Env.DBUser,
-		DBPassword: config.Env.DBPassword,
-		DBName:     config.Env.DBName,
-		DBPort:     config.Env.DBPort,
+		DatabaseURL: config.Env.DatabaseURL,
+		DBHost:      config.Env.DBHost,
+		DBUser:      config.Env.DBUser,
+		DBPassword:  config.Env.DBPassword,
+		DBName:      config.Env.DBName,
+		DBPort:      config.Env.DBPort,
 	})
 
 	if err != nil {
@@ -32,6 +33,7 @@ func main() {
 	}
 
 	rdb, err := cache.NewCacheStorage(cache.RedisConfig{
+		RedisURL:       config.Env.RedisURL,
 		Addr:           config.Env.RedisAddr,
 		Password:       config.Env.RedisPassword,
 		DB:             int(config.Env.RedisDB),

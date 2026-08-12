@@ -6,6 +6,11 @@ services:
     buildCommand: go build -o bin/server ./cmd/main
     startCommand: ./bin/server
     envVars:
+      # --- Postgres ---
+      # Option A (Neon / any URL): set DATABASE_URL, leave DB_* empty.
+      - key: DATABASE_URL
+        sync: false
+      # Option B (individual fields): leave DATABASE_URL unset.
       - key: DB_HOST
         sync: false
       - key: DB_USER
@@ -16,6 +21,12 @@ services:
         sync: false
       - key: DB_PORT
         value: "5432"
+
+      # --- Redis ---
+      # Option A (Upstash TCP URL): set REDIS_URL, leave REDIS_* empty.
+      - key: REDIS_URL
+        sync: false
+      # Option B (individual fields): leave REDIS_URL unset.
       - key: REDIS_ADDR
         sync: false
       - key: REDIS_PASS
@@ -30,6 +41,8 @@ services:
         value: "10"
       - key: REDIS_MAX_ACTIVE_CONNS
         value: "100"
+
+      # --- App ---
       - key: DOMAIN_NAME
-        sync: false
-      # PORT is injected automatically by Render — do not set it here
+        sync: false   # Render service URL
+      # PORT is injected automatically by Render
