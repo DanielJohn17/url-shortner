@@ -94,7 +94,7 @@ func buildAppWithDB(t *testing.T) (*gin.Engine, *gorm.DB) {
 	svc := urls.NewUrlService(repo)
 	h := urls.NewUrlHandler(svc)
 
-	return router.NewRoutes(&router.Handlers{URL: h}), db
+	return router.NewRoutes(&router.Handlers{URL: h}, router.Config{AllowedOrigins: "*"}), db
 }
 
 func buildApp(t *testing.T) *gin.Engine {

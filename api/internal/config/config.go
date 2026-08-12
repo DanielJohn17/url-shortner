@@ -28,8 +28,9 @@ type Config struct {
 	RedisMaxIdleConns   int64
 	RedisMaxActiveConns int64
 
-	DomainName string
-	Port        string
+	DomainName     string
+	Port           string
+	AllowedOrigins string
 }
 
 var Env = initConfig()
@@ -56,8 +57,9 @@ func initConfig() Config {
 		RedisMaxIdleConns:   GetEnvAsInt("REDIS_MAX_IDLE_CONNS", 10),
 		RedisMaxActiveConns: GetEnvAsInt("REDIS_MAX_ACTIVE_CONNS", 100),
 
-		DomainName: GetEnv("DOMAIN_NAME", "localhost:8080"),
-		Port:       GetEnv("PORT", "8080"),
+		DomainName:     GetEnv("DOMAIN_NAME", "localhost:8080"),
+		Port:           GetEnv("PORT", "8080"),
+		AllowedOrigins: GetEnv("ALLOWED_ORIGINS", "*"),
 	}
 }
 

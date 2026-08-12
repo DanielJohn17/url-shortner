@@ -65,7 +65,11 @@ func main() {
 
 	handlers := &router.Handlers{URL: urlHandler}
 
-	r := router.NewRoutes(handlers)
+	routerCfg := router.Config{
+		AllowedOrigins: config.Env.AllowedOrigins,
+	}
+
+	r := router.NewRoutes(handlers, routerCfg)
 
 	r.Run(":" + config.Env.Port)
 }
