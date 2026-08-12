@@ -104,8 +104,9 @@ REDIS_PROTOCOL=3
 REDIS_EXP_IN_SECONDS=86400
 
 # ── App ────────────────────────────────────────────────────────────────────
-DOMAIN_NAME=localhost:8080
+FRONTEND_URL=http://localhost:5173
 PORT=8080
+ALLOWED_ORIGINS=*
 ```
 
 Run the server:
