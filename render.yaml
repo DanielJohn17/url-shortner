@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: url-shortner-api
+    runtime: go
+    rootDir: api
+    buildCommand: go build -o bin/server ./cmd/main
+    startCommand: ./bin/server
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: REDIS_ADDR
+        sync: false
+      - key: REDIS_PASS
+        sync: false
+      - key: REDIS_DB
+        value: "0"
+      - key: REDIS_PROTOCOL
+        value: "3"
+      - key: REDIS_EXP_IN_SECONDS
+        value: "86400"
+      - key: REDIS_MAX_IDLE_CONNS
+        value: "10"
+      - key: REDIS_MAX_ACTIVE_CONNS
+        value: "100"
+      - key: DOMAIN_NAME
+        sync: false
+      # PORT is injected automatically by Render — do not set it here

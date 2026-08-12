@@ -15,7 +15,7 @@ import (
 // @title URL Shortner API
 // @version 1.0
 // @description API to shorten long URLs into short codes.
-// @host localhost:8080
+// @host ${DOMAIN_NAME}
 // @BasePath /api
 func main() {
 
@@ -65,5 +65,5 @@ func main() {
 
 	r := router.NewRoutes(handlers)
 
-	r.Run(":8080")
+	r.Run(":" + config.Env.Port)
 }
