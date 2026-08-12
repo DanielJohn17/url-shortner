@@ -43,8 +43,8 @@ services:
         value: "100"
 
       # --- App ---
-      - key: DOMAIN_NAME
-        sync: false   # Render service URL, e.g. url-shortner-api.onrender.com
+      - key: FRONTEND_URL
+        sync: false   # Vercel frontend URL
       - key: ALLOWED_ORIGINS
-        sync: false   # Your Vercel URL, e.g. https://myapp.vercel.app
+        sync: false   # Vercel URL
       # PORT is injected automatically by Render

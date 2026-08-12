@@ -58,7 +58,7 @@ func (h *URLHandler) Create(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusCreated, gin.H{
 		"success":   true,
-		"short_url": fmt.Sprintf("%s/%s", config.Env.DomainName, shortUrl),
+		"short_url": fmt.Sprintf("%s/%s", config.Env.FrontendURL, shortUrl),
 	})
 }
 

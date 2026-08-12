@@ -28,7 +28,10 @@ type Config struct {
 	RedisMaxIdleConns   int64
 	RedisMaxActiveConns int64
 
-	DomainName     string
+	// FrontendURL is the base URL prepended to generated short codes in API responses
+	// (e.g. https://myapp.vercel.app). The frontend handles /:shortCode and proxies
+	// the redirect through to the API.
+	FrontendURL    string
 	Port           string
 	AllowedOrigins string
 }
@@ -57,7 +60,7 @@ func initConfig() Config {
 		RedisMaxIdleConns:   GetEnvAsInt("REDIS_MAX_IDLE_CONNS", 10),
 		RedisMaxActiveConns: GetEnvAsInt("REDIS_MAX_ACTIVE_CONNS", 100),
 
-		DomainName:     GetEnv("DOMAIN_NAME", "localhost:8080"),
+		FrontendURL:    GetEnv("FRONTEND_URL", "http://localhost:5173"),
 		Port:           GetEnv("PORT", "8080"),
 		AllowedOrigins: GetEnv("ALLOWED_ORIGINS", "*"),
 	}
